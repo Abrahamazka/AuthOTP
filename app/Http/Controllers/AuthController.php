@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
 use App\Mail\OtpMail;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\Http;
 
 class AuthController extends Controller
 {
@@ -16,7 +19,7 @@ class AuthController extends Controller
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
+            'password' => ['required', 'confirmed', Password::min(12)->mixedCase()->symbols()],
         ]);
 
         $validatedData['password'] = Hash::make($validatedData['password']);
@@ -29,7 +32,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'required|string|email',
-            'password' => 'required|string',
+            'password' => ['required', Password::min(12)->mixedCase()->symbols()],
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -38,11 +41,25 @@ class AuthController extends Controller
             return response()->json(['message' => 'Password salah!'], 401);
         }
 
-        $otp = rand(100000, 999999);
+        $googleResponse = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret'   => env('RECAPTCHA_SECRET'),
+            'response' => $request->input('g-recaptcha-response'),
+        ]);
 
-        Cache::put('otp_' . $user->email, $otp, now()->addMinutes(1));
+        $otp = Str::random(12);
+
+        $hashedotp = Hash::make($otp);
+
+        Cache::put('otp_' . $user->email, $hashedotp, now()->addMinutes(1));
 
         Mail::to($user->email)->send(new OtpMail($otp));
+
+        //     return response()->json([
+        //     'msg' => 'Cek kode OTP di email anda',
+        //     'otpawl' => $otp,
+        //     'otphash' => $hashedotp,
+        //     'cek' => Cache::get('otp_' . $user->email)
+        // ], 200);
 
         return response()->json(['message' => 'Cek kode OTP di email anda'], 200);
     }
@@ -51,12 +68,12 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'required|email',
-            'otp' => 'required|numeric',
+            'otp' => 'required|string',
         ]);
 
-        $simpanOtp = Cache::get('otp_' . $request->email);
+        $simpanOtphash = Cache::get('otp_' . $request->email);
 
-        if (!$simpanOtp || $simpanOtp != $request->otp) {
+        if (!$simpanOtphash || !Hash::check($request->otp, $simpanOtphash)) {
             return response()->json(['message' => 'Kode OTP tidak valid'], 400);
         }
 

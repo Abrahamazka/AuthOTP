@@ -4,11 +4,14 @@
         <p style="color: #ffffff; font-size: 15px; line-height: 1.5; margin-bottom: 25px;"> 
             Masukkan kode di bawah ini pada aplikasi untuk melanjutkan proses autentikasi Anda:
         </p>        
-        <div style="border-radius: 6px; padding: 15px; margin: 0 auto 25px auto; display: inline-block;">
-            <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #ffffff;">{{ $otp }}</span>
+        <div style="background-color: #1a1a1a; border: 1px solid #333333; border-radius: 8px; padding: 14px; margin: 0 auto 24px auto; display: inline-block; min-width: 220px;">
+            <span style="font-family: 'Courier New', monospace; font-size: 34px; font-weight: bold; letter-spacing: 6px; color: #ffffff;">
+                {{ $otp }}
+            </span>
         </div>
-        <p style="color: #ffffff; font-size: 13px; margin-bottom: 0;">
-            Kode ini hanya berlaku selama <strong>1 menit</strong>. Jangan berikan kode ini kepada siapa pun.
+         <div style="height: 1px; background-color: #333333; margin: 0 0 20px 0;"></div>
+        <p style="color: #b1acac; font-size: 13px; margin-bottom: 0;">
+            Kode ini hanya berlaku selama <strong style="color: #ffffff;">1 menit</strong>. Jangan berikan kode ini kepada siapa pun.
         </p>
     </div>
 </div>

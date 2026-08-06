@@ -14,3 +14,6 @@ Route::get('/register', function(){
 Route::get('/index', function(){
     return view('auth.index');
 });
+Route::get('/forgotpw', function(){
+    return view('auth.forgotpw');
+});
