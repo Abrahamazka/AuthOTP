@@ -19,7 +19,7 @@ class PwresetController extends Controller
 
         $email = $request->email;
 
-        $otp = Str::random(12);
+        $otp = random_int(10000000, 99999999);
 
         $hashedotp = Hash::make($otp);
 
@@ -39,7 +39,7 @@ class PwresetController extends Controller
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',
-            'otp'   => 'required|string'
+            'otp'   => 'required|numeric'
         ]);
 
         $email = $request->email;
@@ -60,7 +60,7 @@ class PwresetController extends Controller
 
         Cache::forget('otp_' . $email);
 
-        $resetToken = \Illuminate\Support\Str::random(60);
+        $resetToken = Str::random(60);
 
         Cache::put('reset_token_' . $email, $resetToken, now()->addMinutes(2));
 
@@ -87,7 +87,7 @@ class PwresetController extends Controller
         }
 
         $user = User::where('email', $email)->first();
-        $user->password = \Illuminate\Support\Facades\Hash::make($request->password);
+        $user->password = Hash::make($request->password);
         $user->save();
 
         Cache::forget('reset_token_' . $email);

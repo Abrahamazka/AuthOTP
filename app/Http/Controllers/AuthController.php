@@ -8,9 +8,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cache;
 use App\Mail\OtpMail;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use  Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
@@ -20,6 +21,10 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => ['required', 'confirmed', Password::min(12)->mixedCase()->symbols()],
+            'provinsi' => 'required|string',
+            'kota' => 'required|string',
+            'kecamatan' => 'required|string',
+            'kelurahan' => 'required|string',
         ]);
 
         $validatedData['password'] = Hash::make($validatedData['password']);
@@ -32,21 +37,53 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'required|string|email',
-            'password' => ['required', Password::min(12)->mixedCase()->symbols()],
+            'password' => ['required'],
+            'g-recaptcha-response' => 'required|string',
         ]);
-
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Password salah!'], 401);
-        }
 
         $googleResponse = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
             'secret'   => env('RECAPTCHA_SECRET'),
             'response' => $request->input('g-recaptcha-response'),
         ]);
 
-        $otp = Str::random(12);
+        $result = $googleResponse->json();
+
+        if (!($result['success'] ?? false)) {
+            return response()->json(['message' => 'Captcha salah!'], 422);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Passwordnya salah!'], 401);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json(['status' => 'sukses', 'message' => 'Login berhasil', 'token' => $token, 'user' => $user], 200);
+    }
+
+    public function loginOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|string|email|exists:users,email',
+            'g-recaptcha-response' => 'required|string',
+        ]);
+
+        $googleResponse = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret'   => env('RECAPTCHA_SECRET'),
+            'response' => $request->input('g-recaptcha-response'),
+        ]);
+
+        $result = $googleResponse->json();
+
+        if (!($result['success'] ?? false)) {
+            return response()->json(['message' => 'Captcha salah!'], 422);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        $otp = random_int(100000, 999999);
 
         $hashedotp = Hash::make($otp);
 
@@ -54,21 +91,44 @@ class AuthController extends Controller
 
         Mail::to($user->email)->send(new OtpMail($otp));
 
-        //     return response()->json([
-        //     'msg' => 'Cek kode OTP di email anda',
-        //     'otpawl' => $otp,
-        //     'otphash' => $hashedotp,
-        //     'cek' => Cache::get('otp_' . $user->email)
-        // ], 200);
+        return response()->json(['message' => 'Cek kode OTP di email anda'], 200);
+    }
+
+    public function requestOtp(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|string|email|exists:users,email',
+            'g-recaptcha-response' => 'required|string',
+        ]);
+
+        $googleResponse = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret'   => env('RECAPTCHA_SECRET'),
+            'response' => $request->input('g-recaptcha-response'),
+        ]);
+
+        $result = $googleResponse->json();
+
+        if (!($result['success'] ?? false)) {
+            return response()->json(['message' => 'Captcha salah!'], 422);
+        }
+
+        $user = User::where('email', $request->email)->first();
+
+        $otp = random_int(10000000, 99999999);
+        $hashedotp = Hash::make($otp);
+
+        Cache::put('otp_' . $user->email, $hashedotp, now()->addMinutes(1));
+        Mail::to($user->email)->send(new OtpMail($otp));
 
         return response()->json(['message' => 'Cek kode OTP di email anda'], 200);
     }
+
 
     public function verifyOtp(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
-            'otp' => 'required|string',
+            'otp' => 'required|numeric',
         ]);
 
         $simpanOtphash = Cache::get('otp_' . $request->email);
@@ -83,7 +143,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['status' => 'sukses', 'message' => 'Login berhasil', 'token' => $token], 200);
+        return response()->json(['status' => 'sukses', 'message' => 'Login berhasil', 'token' => $token, 'user' => $user], 200);
     }
 
     public function logout(Request $request)
@@ -91,5 +151,163 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json(['status' => 'sukses', 'message' => 'Logout berhasil'], 200);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'name'      => 'required|string|max:255',
+            'provinsi'  => 'nullable|string',
+            'kota'      => 'nullable|string',
+            'kecamatan' => 'nullable|string',
+            'kelurahan' => 'nullable|string',
+        ]);
+
+        $user->name      = $request->name;
+        $user->provinsi  = $request->provinsi;
+        $user->kota      = $request->kota;
+        $user->kecamatan = $request->kecamatan;
+        $user->kelurahan = $request->kelurahan;
+
+        $user->save();
+
+        return response()->json([
+            'message' => 'Profil berhasil diperbarui!',
+            'user'    => $user
+        ], 200);
+    }
+
+    public function updateFoto(Request $request)
+    {
+        $user = $request->user();
+
+        $request->validate([
+            'foto' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        if ($request->hasFile('foto')) {
+
+            if ($user->foto) {
+                Storage::disk('public')->delete($user->foto);
+            }
+
+            $path = $request->file('foto')->store('avatars', 'public');
+
+            $user->foto = $path;
+            $user->save();
+
+            return response()->json([
+                'message'  => 'Foto profil berhasil diperbarui!',
+                'foto_url' => asset('storage/' . $user->foto)
+            ], 200);
+        }
+        return response()->json(['message' => 'Tidak ada file yang diunggah'], 400);
+    }
+    public function hapusFoto(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->foto) {
+            Storage::disk('public')->delete($user->foto);
+
+            $user->foto = null;
+            $user->save();
+
+            return response()->json(['message' => 'Foto profil berhasil dihapus!'], 200);
+        }
+
+        return response()->json(['message' => 'Tidak ada foto untuk dihapus'], 400);
+    }
+    public function getAllUsers()
+    {
+        $users = User::all();
+
+        return response()->json([
+            'message' => 'Berhasil mengambil data semua warga',
+            'data'    => $users
+        ], 200);
+    }
+    public function deleteUser($id)
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json(['message' => 'Target tidak ditemukan!'], 404);
+        }
+
+        if ($user->foto) {
+            Storage::disk('public')->delete($user->foto);
+        }
+
+        $user->delete();
+
+        return response()->json(['message' => 'Pemain berhasil dieksekusi (Dihapus)!'], 200);
+    }
+
+    public function ubahRole(Request $request, $id)
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json(['message' => 'Target tidak ditemukan!'], 404);
+        }
+
+        $user->role = $request->role;
+        $user->save();
+
+        return response()->json(['message' => 'Kasta pemain berhasil diubah!'], 200);
+    }
+
+    public function resetPasswordUser($id)
+    {
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json(['message' => 'Target tidak ditemukan!'], 404);
+        }
+
+        $user->password = Hash::make('Sandibaru123');
+        $user->save();
+
+        return response()->json(['message' => 'Sandi berhasil direset menjadi: Sandibaru123'], 200);
+    }
+
+    public function createUser(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6',
+            'role'     => 'required|in:user,admin',
+            'provinsi'  => 'nullable|string',
+            'kota'      => 'nullable|string',
+            'kecamatan' => 'nullable|string',
+            'kelurahan' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Data tidak valid!',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        $user = User::create([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+            'role'     => $request->role,
+            'provinsi'  => $request->provinsi,
+            'kota'      => $request->kota,
+            'kecamatan' => $request->kecamatan,
+            'kelurahan' => $request->kelurahan,
+        ]);
+
+        return response()->json([
+            'message' => 'Warga baru berhasil ditambahkan!',
+            'data'    => $user
+        ], 201);
     }
 }

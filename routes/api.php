@@ -5,15 +5,29 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PwresetController;
 
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:3,5');
-Route::post('/login/verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:3,5');
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login/request-otp', [AuthController::class, 'requestOtp']);
+Route::post('/login/verify-otp', [AuthController::class, 'verifyOtp']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profil', function (Illuminate\Http\Request $request) {
         return $request->user();
-    }); 
+    });
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::put('/profil/update', [AuthController::class, 'updateProfile']);
+    Route::post('/profil/foto', [AuthController::class, 'updateFoto']);
+    Route::delete('/profil/foto', [AuthController::class, 'hapusFoto']);
 });
-Route::post('/forgot-password', [PwresetController::class, 'sendOtp'])->middleware('throttle:5,2');
+Route::post('/forgot-password', [PwresetController::class, 'sendOtp']);
 Route::post('/verify-otp', [PwresetController::class, 'verifyOtp']);
 Route::post('/password-reset', [PwresetController::class, 'passwordReset']);
+
+Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+
+    Route::post('/admin/users', [AuthController::class, 'createUser']);
+    Route::get('/admin/users', [AuthController::class, 'getAllUsers']);
+    Route::delete('/admin/users/{id}', [AuthController::class, 'deleteUser']);
+    Route::put('/admin/users/{id}/role', [AuthController::class, 'ubahRole']);
+    Route::put('/admin/user/{id}/reset-password', [AuthController::class, 'resetPasswordUser']);
+});

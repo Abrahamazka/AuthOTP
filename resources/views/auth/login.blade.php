@@ -16,29 +16,45 @@
         <h2 id="formTitle" class="text-2xl font-extrabold mb-6 text-center">Masuk ke Akun</h2>
 
         <form id="loginForm" class="space-y-4">
+            <div class="flex border-b border-gray-200 mb-4">
+                <button type="button" id="tabPassword" class="flex-1 py-2 text-sm font-bold text-black border-b-2 border-black">
+                    Pakai Password
+                </button>
+                <button type="button" id="tabOtp" class="flex-1 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
+                    Pakai OTP
+                </button>
+            </div>
+
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-800">Email</label>
                 <input type="email" id="email" name="email" required
                     class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="example@email.com">
+                    placeholder="contoh@gmail.com">
             </div>
-            <div>
+
+            <div id="wadahPassword">
                 <label for="password" class="block text-sm font-medium text-gray-800">Password</label>
-                <input type="password" id="password" name="password" required
+                <input type="password" id="password" name="password"
                     class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                <p class="text-sm font-small text-gray-500">lupa password? <a href="/forgotpw" class="text-blue-500 hover:text-blue-800">klik disini</a></p>
+                <p class="text-sm font-small text-gray-500 mt-1">lupa password? <a href="/forgotpw" class="text-blue-500 hover:text-blue-800">klik disini</a></p>
             </div>
 
             <div class="g-recaptcha flex justify-center" data-sitekey="6LdkeHYtAAAAAAhlwlAwnsdTdAOs4N6GTu1kiyCJ"></div>
 
-            <button type="submit" id="btnSubmit"
-                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#171A33] hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                Kirim Kode OTP
-            </button>
+            <div class="mt-4">
+                <button type="button" id="btnPassword"
+                    class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#171A33] hover:bg-gray-800 transition-colors duration-200">
+                    Login dengan Password
+                </button>
 
-            <p class="text-center text-semibold">Belum ada akun? <a href="/register" class="text-blue-500 hover:text-blue-800">register disini</a></p>
+                <button type="button" id="btnOtp"
+                    class="hidden w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#171A33] hover:bg-gray-800 transition-colors duration-200">
+                    Kirim Kode OTP
+                </button>
+            </div>
+
+            <p class="text-center text-sm font-semibold">Belum ada akun? <a href="/register" class="text-blue-500 hover:text-blue-800">register disini</a></p>
         </form>
-
         <form id="otpForm" class="space-y-4 hidden">
             <div>
                 <label for="otp" class="block text-sm font-medium text-gray-800">Kode OTP</label>
@@ -59,7 +75,7 @@
         const token = localStorage.getItem('token_v');
         if (token) {
             window.location.href = '/index';
-            }
+        }
 
         const loginForm = document.getElementById('loginForm');
         const otpForm = document.getElementById('otpForm');
@@ -68,16 +84,43 @@
 
         let userEmail = '';
 
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        const btnPassword = document.getElementById('btnPassword');
+        const btnOtp = document.getElementById('btnOtp');
 
+        const tabPassword = document.getElementById('tabPassword');
+        const tabOtp = document.getElementById('tabOtp');
+        const wadahPassword = document.getElementById('wadahPassword');
+        tabPassword.addEventListener('click', () => {
+            tabPassword.className = "flex-1 py-2 text-sm font-bold text-black border-b-2 border-black";
+            tabOtp.className = "flex-1 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-0";
+
+            wadahPassword.classList.remove('hidden');
+            btnPassword.classList.remove('hidden');
+            btnOtp.classList.add('hidden');
+        });
+
+        tabOtp.addEventListener('click', () => {
+            tabOtp.className = "flex-1 py-2 text-sm font-bold text-black border-b-2 border-black";
+            tabPassword.className = "flex-1 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-0";
+
+            wadahPassword.classList.add('hidden');
+            btnPassword.classList.add('hidden');
+            btnOtp.classList.remove('hidden');
+        });
+
+        btnPassword.addEventListener('click', async () => {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            userEmail = email;
+            const captchaT = grecaptcha.getResponse();
 
-            const btn = document.getElementById('btnSubmit');
-            btn.innerHTML = "Memproses...";
-            btn.disabled = true;
+            if (!captchaT) {
+                pesanSistem.innerHTML = "Centang reCAPTCHA dulu!";
+                pesanSistem.className = "mt-4 text-center text-sm text-red-600 block font-bold";
+                return;
+            }
+
+            btnPassword.innerHTML = "Memproses...";
+            btnPassword.disabled = true;
 
             try {
                 const res = await fetch('http://127.0.0.1:8000/api/login', {
@@ -88,14 +131,70 @@
                     },
                     body: JSON.stringify({
                         email: email,
-                        password: password
+                        password: password,
+                        'g-recaptcha-response': captchaT
                     })
                 });
 
-                if (res.status === 429) {
-                    alert('Terlalu banyak percobaan! Mohon tunggu 1 menit sebelum mencoba lagi.');
-                    return;
+                const data = await res.json();
+
+                if (res.ok) {
+                    localStorage.setItem('token_v', data.token);
+                    const roleUser = data.user.role;
+                    if (roleUser == 'admin'){
+                        pesanSistem.innerHTML = "Halo bosku, membuka dashboard";
+                        pesanSistem.className = "mt-4 text-center text-sm text-green-600 block font-bold";
+                        setTimeout(() => {
+                            window.location.href = '/admin';
+                        }, 1500);
+                    } else {
+                        pesanSistem.innerHTML = "Berhasil Masuk, Membuka profil...";
+                        pesanSistem.className = "mt-4 text-center text-sm text-green-600 block font-bold";
+                        setTimeout(() => {
+                            window.location.href = '/index';
+                        }, 1500); 
+                    }
+                } else {
+                    pesanSistem.innerHTML = data.message;
+                    pesanSistem.className = "mt-4 text-center text-sm text-red-600 block";
+                    grecaptcha.reset();
                 }
+            } catch (err) {
+                pesanSistem.innerHTML = "Server error atau mati.";
+                pesanSistem.className = "mt-4 text-center text-sm text-red-600 block";
+                grecaptcha.reset();
+            } finally {
+                btnPassword.innerHTML = "Login dengan Password";
+                btnPassword.disabled = false;
+            }
+        });
+
+        btnOtp.addEventListener('click', async () => {
+            const email = document.getElementById('email').value;
+            userEmail = email;
+            const captchaT = grecaptcha.getResponse();
+
+            if (!captchaT) {
+                pesanSistem.innerHTML = "Centang reCAPTCHA dulu!";
+                pesanSistem.className = "mt-4 text-center text-sm text-red-600 block font-bold";
+                return;
+            }
+
+            btnOtp.innerHTML = "Mengirim...";
+            btnOtp.disabled = true;
+
+            try {
+                const res = await fetch('http://127.0.0.1:8000/api/login/request-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        'g-recaptcha-response': captchaT
+                    })
+                });
 
                 const data = await res.json();
 
@@ -103,19 +202,20 @@
                     loginForm.classList.add('hidden');
                     otpForm.classList.remove('hidden');
                     formTitle.innerHTML = "Verifikasi 2 Langkah";
-
-                    pesanSistem.innerHTML = "BERHASIL, " + data.message;
-                    pesanSistem.className = "mt-4 text-center text-sm text-black block font-bold";
+                    pesanSistem.innerHTML = data.message;
+                    pesanSistem.className = "mt-4 text-center text-sm text-green-600 block font-bold";
                 } else {
-                    pesanSistem.innerHTML = "GAGAL, " + data.message;
-                    pesanSistem.className = "mt-4 text-center text-sm text-black block";
+                    pesanSistem.innerHTML = data.message;
+                    pesanSistem.className = "mt-4 text-center text-sm text-red-600 block";
+                    grecaptcha.reset();
                 }
             } catch (err) {
                 pesanSistem.innerHTML = "Server error atau mati.";
-                pesanSistem.className = "mt-4 text-center text-sm text-black block";
+                pesanSistem.className = "mt-4 text-center text-sm text-red-600 block";
+                grecaptcha.reset();
             } finally {
-                btn.innerHTML = "Kirim Kode OTP";
-                btn.disabled = false;
+                btnOtp.innerHTML = "Kirim Kode OTP";
+                btnOtp.disabled = false;
             }
         });
 
@@ -140,8 +240,9 @@
                         otp: otpValue
                     })
                 });
+
                 if (res.status === 429) {
-                    alert('Terlalu banyak percobaan! Silahkan tunggu 5 menit sebelum bisa mencoba lagi');
+                    alert('Terlalu banyak percobaan! Silahkan tunggu 5 menit.');
                     return;
                 }
 
@@ -149,21 +250,20 @@
 
                 if (res.ok) {
                     localStorage.setItem('token_v', data.token);
+                    const roleUser = data.user.role;
 
-                    pesanSistem.innerHTML = "Berhasil Masuk...";
-                    pesanSistem.className = "mt-4 text-center text-sm text-black block font-bold";
-
-                    setTimeout(() => {
+                    if(roleUser == 'admin') {
+                        window.location.href = '/admin';
+                    } else {
                         window.location.href = '/index';
-                    }, 1500);
-
+                    }
                 } else {
                     pesanSistem.innerHTML = (data.message || "Kode OTP tidak valid.");
-                    pesanSistem.className = "mt-4 text-center text-sm text-black block";
+                    pesanSistem.className = "mt-4 text-center text-sm text-red-600 block";
                 }
             } catch (err) {
                 pesanSistem.innerHTML = "Terjadi kesalahan.";
-                pesanSistem.className = "mt-4 text-center text-sm text-black block";
+                pesanSistem.className = "mt-4 text-center text-sm text-red-600 block";
             } finally {
                 btnVerify.innerHTML = "Verifikasi & Masuk";
                 btnVerify.disabled = false;

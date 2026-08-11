@@ -7,6 +7,9 @@
     <title>Register</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" type="image/png" href="{{ asset('images/camerawowo.png') }}">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 </head>
 
 <body class="bg-[#E6E1D6] flex items-center justify-center h-screen">
@@ -15,6 +18,37 @@
         <h2 class="text-2xl font-extrabold mb-6 text-center">Buat Akun</h2>
 
         <form id="registerForm" class="space-y-4">
+            <div class="space-y-4 mb-6 p-4 bg-gray-50 border border-gray-200 rounded-md">
+                <h3 class="font-bold text-gray-700">Alamat Lengkap</h3>
+
+                <div id="wadah-provinsi">
+                    <label class="block text-sm font-medium text-gray-800">Provinsi</label>
+                    <select id="provinsi" name="provinsi" class="w-full select2">
+                        <option value="">Pilih Provinsi...</option>
+                    </select>
+                </div>
+
+                <div id="wadah-kota" class="hidden transition-all duration-300">
+                    <label class="block text-sm font-medium text-gray-800">Kota/Kabupaten</label>
+                    <select id="kota" name="kota" class="w-full select2">
+                        <option value="">Pilih Kota...</option>
+                    </select>
+                </div>
+
+                <div id="wadah-kecamatan" class="hidden transition-all duration-300">
+                    <label class="block text-sm font-medium text-gray-800">Kecamatan</label>
+                    <select id="kecamatan" name="kecamatan" class="w-full select2">
+                        <option value="">Pilih Kecamatan...</option>
+                    </select>
+                </div>
+
+                <div id="wadah-kelurahan" class="hidden transition-all duration-300">
+                    <label class="block text-sm font-medium text-gray-800">Kelurahan/Desa</label>
+                    <select id="kelurahan" name="kelurahan" class="w-full select2">
+                        <option value="">Pilih Kelurahan...</option>
+                    </select>
+                </div>
+            </div>
             <div>
                 <label for="name" class="block text-sm font-medium text-gray-800">Nama</label>
                 <input type="text" id="name" name="name" required
@@ -25,7 +59,7 @@
                 <label for="email" class="block text-sm font-medium text-gray-800">Email</label>
                 <input type="email" id="email" name="email" required
                     class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="example@email.com">
+                    placeholder="contoh@gmail.com">
             </div>
             <div>
                 <label for="password" class="block text-sm font-medium text-gray-800">Password</label>
@@ -55,6 +89,93 @@
             window.location.href = '/index';
         }
 
+        $(document).ready(function() {
+            $('.select2').select2({
+                width: '100%'
+            });
+
+            fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json')
+                .then(response => response.json())
+                .then(provinces => {
+                    let options = '<option value="">Pilih Provinsi...</option>';
+                    provinces.forEach(prov => {
+                        options += `<option value="${prov.name}" data-id="${prov.id}">${prov.name}</option>`;
+                    });
+                    $('#provinsi').html(options);
+                });
+
+            $('#provinsi').on('change', function() {
+                let idProv = $(this).find(':selected').data('id');
+
+                $('#wadah-kecamatan, #wadah-kelurahan').addClass('hidden');
+                $('#kota, #kecamatan, #kelurahan').html('<option value="">Pilih...</option>');
+
+                if (idProv) {
+                    $('#wadah-kota').removeClass('hidden');
+                    $('#kota').html('<option value="">Loading...</option>');
+
+                    fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${idProv}.json`)
+                        .then(response => response.json())
+                        .then(regencies => {
+                            let options = '<option value="">Pilih Kota...</option>';
+                            regencies.forEach(kota => {
+                                options += `<option value="${kota.name}" data-id="${kota.id}">${kota.name}</option>`;
+                            });
+                            $('#kota').html(options);
+                        });
+                } else {
+                    $('#wadah-kota').addClass('hidden');
+                }
+            });
+
+            $('#kota').on('change', function() {
+                let idKota = $(this).find(':selected').data('id');
+
+                $('#wadah-kelurahan').addClass('hidden');
+                $('#kecamatan, #kelurahan').html('<option value="">Pilih...</option>');
+
+                if (idKota) {
+                    $('#wadah-kecamatan').removeClass('hidden');
+                    $('#kecamatan').html('<option value="">Loading...</option>');
+
+                    fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${idKota}.json`)
+                        .then(response => response.json())
+                        .then(districts => {
+                            let options = '<option value="">Pilih Kecamatan...</option>';
+                            districts.forEach(kec => {
+                                options += `<option value="${kec.name}" data-id="${kec.id}">${kec.name}</option>`;
+                            });
+                            $('#kecamatan').html(options);
+                        });
+                } else {
+                    $('#wadah-kecamatan').addClass('hidden');
+                }
+            });
+
+            $('#kecamatan').on('change', function() {
+                let idKecamatan = $(this).find(':selected').data('id');
+
+                $('#kelurahan').html('<option value="">Pilih...</option>');
+
+                if (idKecamatan) {
+                    $('#wadah-kelurahan').removeClass('hidden');
+                    $('#kelurahan').html('<option value="">Loading...</option>');
+
+                    fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/villages/${idKecamatan}.json`)
+                        .then(response => response.json())
+                        .then(villages => {
+                            let options = '<option value="">Pilih Kelurahan...</option>';
+                            villages.forEach(kel => {
+                                options += `<option value="${kel.name}">${kel.name}</option>`;
+                            });
+                            $('#kelurahan').html(options);
+                        });
+                } else {
+                    $('#wadah-kelurahan').addClass('hidden');
+                }
+            });
+        });
+
         const registerForm = document.getElementById('registerForm');
         const pesanSistem = document.getElementById('pesanSistem');
 
@@ -65,6 +186,10 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const password_confirmation = document.getElementById('password_confirmation').value;
+            const provinsi = $('#provinsi').val();
+            const kota = $('#kota').val();
+            const kecamatan = $('#kecamatan').val(); 
+            const kelurahan = $('#kelurahan').val();
 
             const btn = document.getElementById('btnSubmit');
             btn.innerHTML = "Memproses...";
@@ -81,7 +206,11 @@
                         name: name,
                         email: email,
                         password: password,
-                        password_confirmation: password_confirmation
+                        password_confirmation: password_confirmation,
+                        provinsi: provinsi,
+                        kota: kota,
+                        kecamatan: kecamatan,
+                        kelurahan: kelurahan
                     })
                 });
 

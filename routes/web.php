@@ -2,9 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
 Route::get('/login', function(){
     return view('auth.login');
 });
@@ -12,8 +9,14 @@ Route::get('/register', function(){
     return view('auth.register');
 });
 Route::get('/index', function(){
-    return view('auth.index');
+    return view('index');
+});
+Route::get('/admin', function(){
+    return view('admin');
 });
 Route::get('/forgotpw', function(){
     return view('auth.forgotpw');
+});
+Route::get('/profile', function(){
+    return view('profile');
 });
