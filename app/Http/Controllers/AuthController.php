@@ -178,6 +178,33 @@ class AuthController extends Controller
             'user'    => $user
         ], 200);
     }
+    public function updatePassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Data tidak valid!',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        $user = $request->user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'message' => 'Password saat ini salah!'
+            ], 400);
+        }
+
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json(['message' => 'Password berhasil diperbarui!'], 200);
+    }
 
     public function updateFoto(Request $request)
     {
@@ -220,14 +247,27 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Tidak ada foto untuk dihapus'], 400);
     }
-    public function getAllUsers()
+    public function getAllUsers(Request $request)
     {
-        $users = User::all();
+        $search = $request->query('search'); 
 
-        return response()->json([
-            'message' => 'Berhasil mengambil data semua warga',
-            'data'    => $users
-        ], 200);
+        $sortBy = $request->query('sort_by', 'created_at'); 
+        $sortDir = $request->query('sort_dir', 'desc');
+
+        $allowedSorts = ['name', 'email', 'role', 'kota'];
+        if (!in_array($sortBy, $allowedSorts)) {
+            $sortBy = 'created_at';
+        }
+        $sortDir = strtolower($sortDir) === 'asc' ? 'asc' : 'desc';
+
+        $users = User::when($search, function ($query, $search) {
+            return $query->where('name', 'like', "%{$search}%")
+                         ->orWhere('email', 'like', "%{$search}%")
+                         ->orWhere('kota', 'like', "%{$search}%");
+        })
+        ->orderBy($sortBy, $sortDir)
+        ->paginate(10);
+        return response()->json(['message' => 'Berhasil mengambil data', 'data' => $users], 200);
     }
     public function deleteUser($id)
     {
@@ -279,7 +319,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name'     => 'required|string|max:255',
             'email'    => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6',
+            'password' => ['required', Password::min(12)->mixedCase()->symbols()],
             'role'     => 'required|in:user,admin',
             'provinsi'  => 'nullable|string',
             'kota'      => 'nullable|string',
@@ -310,4 +350,36 @@ class AuthController extends Controller
             'data'    => $user
         ], 201);
     }
+    public function updateUserAdmin(Request $request, $id)
+    {
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['message' => 'User tidak ditemukan!'], 404);
+    }
+    $validator = Validator::make($request->all(), [
+            'name'      => 'required|string|max:255',
+            'email'     => 'required|string|email|max:255|unique:users,email,' . $id,
+            'provinsi'  => 'nullable|string',
+            'kota'      => 'nullable|string',
+            'kecamatan' => 'nullable|string',
+            'kelurahan' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Data tidak valid!',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        $user->name      = $request->name;
+        $user->email     = $request->email;
+        $user->provinsi  = $request->provinsi;
+        $user->kota      = $request->kota;
+        $user->kecamatan = $request->kecamatan;
+        $user->kelurahan = $request->kelurahan;
+        $user->save();
+
+        return response()->json(['message' => 'Data user berhasil diperbarui!'], 200);
+        }
 }

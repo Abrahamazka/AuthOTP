@@ -6,82 +6,126 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profil Saya</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar {
+            display: none;
+        }
+
+        html,
+        body {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
 </head>
 
 <body class="bg-[#E6E1D6] min-h-screen p-8">
 
-    <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-md p-8">
-        <div class="flex justify-between items-center pb-4 mb-6 border-b">
-            <h1 class="text-xl font-bold text-gray-800">Profil Saya</h1>
-            <a href="/index" class="text-sm font-semibold text-blue-600 hover:underline">← Kembali ke Dashboard</a>
-        </div>
+    <div class="max-w-3xl mx-auto bg-[#FBF6EA] border-2 border-[#2B2318] flex flex-col">
 
-        <div id="pesanSistem" class="hidden mb-4 p-3 rounded-lg text-sm font-bold text-center"></div>
-
-        <div class="flex flex-col items-center mb-6">
-            <div class="w-24 h-24 rounded-full bg-blue-600 text-white flex items-center justify-center overflow-hidden mb-3 shadow">
-                <span id="avatarText" class="text-3xl font-bold">U</span>
-                <img id="avatarImg" src="" alt="Foto Profil" class="w-full h-full object-cover hidden">
+        <div class="p-8">
+            <div class="flex justify-end w-full mb-4">
+                <a href="#" id="btnKembali" class="px-4 py-2 border-2 border-[#2B2318] text-xs font-bold uppercase tracking-wider hover:bg-[#EDE0BC] transition-colors bg-[#FBF6EA]">
+                    Kembali →
+                </a>
             </div>
-            <label class="cursor-pointer bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs px-3 py-1.5 rounded-md font-semibold transition">
-                Pilih Foto Baru
-                <input type="file" id="fotoInput" class="hidden" accept="image/*">
-            </label>
-            <button id="btnHapusFoto" class="hidden mt-2 text-xs font-bold text-red-300 hover:text-red-500 transition">
-                Hapus Foto
-            </button>
-        </div>
+            <div id="pesanSistem" class="hidden mb-6 p-3 border-2 border-[#2B2318] text-xs font-bold text-center uppercase"></div>
 
-        <div class="space-y-4 text-sm">
-            <div>
-                <label class="block text-gray-500 font-semibold text-xs">NAMA LENGKAP</label>
-                <p id="namaUser" class="text-gray-800 font-medium border-b pb-1 text-base">-</p>
-                <input type="text" id="inputNamaUser" class="hidden w-full border rounded p-2 mt-1 text-base">
-            </div>
-            <div>
-                <label class="block text-gray-500 font-semibold text-xs">EMAIL</label>
-                <p id="emailUser" class="text-gray-800 font-medium border-b pb-1 text-base">-</p>
+            <div class="flex flex-col items-center mb-8">
+                <div id="avatarWadah" class="w-24 h-24 rounded-full border-2 border-[#2B2318] flex items-center justify-center text-3xl font-bold shadow-sm overflow-hidden relative">
+                    <span id="avatarText">U</span>
+                    <img id="avatarImg" src="" class="hidden w-full h-full object-cover">
+                </div>
+                <div class="flex gap-2 mt-4">
+                    <input type="file" id="fotoInput" class="hidden" accept="image/*">
+                    <button id="btnPilihFoto" onclick="document.getElementById('fotoInput').click()" class="border-2 border-[#2B2318] bg-amber-300 px-3 py-1 text-[10px] font-bold uppercase hover:bg-amber-400 transition-colors">
+                        Pilih Foto
+                    </button>
+                    <button id="btnHapusFoto" class="hidden border-2 border-[#2B2318] bg-red-400 px-3 py-1 text-[10px] font-bold uppercase hover:bg-red-500 transition-colors">
+                        Hapus
+                    </button>
+                </div>
             </div>
 
-            <div class="mt-6 pt-4">
-                <h2 class="text-base font-bold text-gray-700 mb-3">Alamat Domisili</h2>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-gray-500 text-xs font-semibold">PROVINSI</label>
-                        <p id="provinsiUser" class="text-gray-800 font-medium border-b pb-1">-</p>
-                        <select id="inputProvinsi" class="hidden w-full border rounded p-2 mt-1"></select>
-                    </div>
-                    <div>
-                        <label class="block text-gray-500 text-xs font-semibold">KOTA / KABUPATEN</label>
-                        <p id="kotaUser" class="text-gray-800 font-medium border-b pb-1">-</p>
-                        <select id="inputKota" class="hidden w-full border rounded p-2 mt-1"></select>
-                    </div>
-                    <div>
-                        <label class="block text-gray-500 text-xs font-semibold">KECAMATAN</label>
-                        <p id="kecamatanUser" class="text-gray-800 font-medium border-b pb-1">-</p>
-                        <select id="inputKecamatan" class="hidden w-full border rounded p-2 mt-1"></select>
-                    </div>
-                    <div>
-                        <label class="block text-gray-500 text-xs font-semibold">KELURAHAN</label>
-                        <p id="kelurahanUser" class="text-gray-800 font-medium border-b pb-1">-</p>
-                        <select id="inputKelurahan" class="hidden w-full border rounded p-2 mt-1"></select>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 text-sm">
+                <div class="sm:col-span-2 text-[10px] uppercase tracking-widest text-[#8A7F5E] border-b-2 border-[#2B2318] pb-1">Data Pribadi</div>
+
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest text-[#8A7F5E] mb-1">Nama Lengkap</label>
+                    <div id="namaUser" class="w-full border-2 border-[#2B2318] bg-white p-2 text-xs font-bold uppercase min-h-[36px] flex items-center"></div>
+                    <input type="text" id="inputNamaUser" class="hidden w-full border-2 border-[#2B2318] p-2 text-xs font-bold uppercase bg-white outline-none focus:bg-[#EDE0BC]">
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest text-[#8A7F5E] mb-1">Email</label>
+                    <div id="emailUser" class="w-full border-2 border-[#2B2318] bg-[#E6E1D6] text-gray-500 p-2 text-xs font-bold min-h-[36px] flex items-center cursor-not-allowed"></div>
+                </div>
+
+                <div class="sm:col-span-2 text-[10px] uppercase tracking-widest text-[#8A7F5E] border-b-2 border-[#2B2318] pb-1 mt-2">Alamat Domisili</div>
+
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest text-[#8A7F5E] mb-1">Provinsi</label>
+                    <div id="provinsiUser" class="w-full border-2 border-[#2B2318] bg-white p-2 text-xs font-bold uppercase min-h-[36px] flex items-center"></div>
+                    <select id="inputProvinsi" class="hidden w-full border-2 border-[#2B2318] p-2 text-xs font-bold uppercase bg-white outline-none focus:bg-[#EDE0BC]"></select>
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest text-[#8A7F5E] mb-1">Kota / Kabupaten</label>
+                    <div id="kotaUser" class="w-full border-2 border-[#2B2318] bg-white p-2 text-xs font-bold uppercase min-h-[36px] flex items-center"></div>
+                    <select id="inputKota" class="hidden w-full border-2 border-[#2B2318] p-2 text-xs font-bold uppercase bg-white outline-none focus:bg-[#EDE0BC]"></select>
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest text-[#8A7F5E] mb-1">Kecamatan</label>
+                    <div id="kecamatanUser" class="w-full border-2 border-[#2B2318] bg-white p-2 text-xs font-bold uppercase min-h-[36px] flex items-center"></div>
+                    <select id="inputKecamatan" class="hidden w-full border-2 border-[#2B2318] p-2 text-xs font-bold uppercase bg-white outline-none focus:bg-[#EDE0BC]"></select>
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest text-[#8A7F5E] mb-1">Kelurahan</label>
+                    <div id="kelurahanUser" class="w-full border-2 border-[#2B2318] bg-white p-2 text-xs font-bold uppercase min-h-[36px] flex items-center"></div>
+                    <select id="inputKelurahan" class="hidden w-full border-2 border-[#2B2318] p-2 text-xs font-bold uppercase bg-white outline-none focus:bg-[#EDE0BC]"></select>
+                </div>
+
+                <div class="sm:col-span-2 mt-2">
+                    <button id="btnEdit" class="w-full py-2 border-2 border-[#2B2318] bg-[#2B2318] text-white hover:bg-black text-xs font-bold uppercase tracking-wider transition-colors">
+                        Edit Profil
+                    </button>
+                    <div id="wadahSimpan" class="hidden flex gap-2 w-full">
+                        <button id="btnBatal" class="flex-1 py-2 border-2 border-[#2B2318] bg-[#EDE0BC] text-black hover:bg-[#DED2AE] text-xs font-bold uppercase tracking-wider transition-colors">
+                            Batal
+                        </button>
+                        <button id="btnSimpan" class="flex-1 py-2 border-2 border-[#2B2318] bg-[#B4F0C3] text-black hover:bg-[#93ECA8] text-xs font-bold uppercase tracking-wider transition-colors">
+                            Simpan Perubahan
+                        </button>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="mt-8 flex flex-col space-y-3">
-            <button id="btnEdit" class="w-full bg-black hover:bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition">
-                Edit Profil
-            </button>
-            <div id="wadahSimpan" class="hidden flex space-x-3 w-full">
-                <button id="btnBatal" class="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 rounded-lg text-sm transition">
-                    Batal
-                </button>
-                <button id="btnSimpan" class="flex-1 bg-black hover:bg-gray-400 text-white font-bold py-2 rounded-lg text-sm transition">
-                    Simpan Perubahan
-                </button>
+            <div class="mt-8 pt-6 border-t-2 border-dashed border-[#2B2318]">
+                <h3 class="text-[12px] font-bold text-black uppercase tracking-widest mb-4">Ganti Password</h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                    <div class="sm:col-span-2">
+                        <label class="block text-[10px] uppercase tracking-widest text-[#8A7F5E] mb-1">Password Saat Ini</label>
+                        <input type="password" id="currentPassword" class="w-full border-2 border-[#2B2318] p-2 text-xs font-bold bg-white outline-none focus:bg-[#EDE0BC] transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase tracking-widest text-[#8A7F5E] mb-1">Password Baru</label>
+                        <input type="password" id="newPassword" class="w-full border-2 border-[#2B2318] p-2 text-xs font-bold bg-white outline-none focus:bg-[#EDE0BC] transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase tracking-widest text-[#8A7F5E] mb-1">Konfirmasi Password Baru</label>
+                        <input type="password" id="newPassword_confirmation" class="w-full border-2 border-[#2B2318] p-2 text-xs font-bold bg-white outline-none focus:bg-[#EDE0BC] transition-colors">
+                    </div>
+                </div>
+
+                <div id="pesanPassword" class="hidden mt-4 text-xs font-bold text-center uppercase p-2 border-2 border-[#2B2318]"></div>
+
+                <div class="mt-4 flex justify-end">
+                    <button id="btnGantiPassword" class="px-6 py-2 border-2 border-[#2B2318] bg-blue-400 text-black text-xs font-bold uppercase hover:bg-blue-500 transition-colors">
+                        Simpan Password
+                    </button>
+                </div>
             </div>
+
         </div>
     </div>
 
@@ -115,6 +159,19 @@
             loadDataProfil();
         }
 
+        function getRetroColor(name) {
+            const colors = [
+                'bg-[#B4F0C3]',
+                'bg-[#D4C4FA]',
+                'bg-[#FCA5A5]',
+                'bg-[#FCD34D]',
+                'bg-[#93C5FD]',
+                'bg-[#F9A8D4]'
+            ];
+            const charCode = (name || 'U').toUpperCase().charCodeAt(0);
+            return colors[charCode % colors.length];
+        }
+
         function loadDataProfil() {
             fetch('http://127.0.0.1:8000/api/profil', {
                     headers: {
@@ -139,11 +196,24 @@
                         avatarImg.classList.remove('hidden');
                         avatarText.classList.add('hidden');
                         btnHapusFoto.classList.remove('hidden');
+
+                        document.getElementById('avatarWadah').className = "w-24 h-24 rounded-full border-2 border-[#2B2318] flex items-center justify-center text-3xl font-bold shadow-sm overflow-hidden relative bg-white";
                     } else {
                         avatarText.innerText = (user.name || 'U').charAt(0).toUpperCase();
                         avatarImg.classList.add('hidden');
                         avatarText.classList.remove('hidden');
                         btnHapusFoto.classList.add('hidden');
+
+                        const warnaWadah = getRetroColor(user.name);
+                        document.getElementById('avatarWadah').className = `w-24 h-24 rounded-full border-2 border-[#2B2318] flex items-center justify-center text-3xl font-bold text-black shadow-sm overflow-hidden relative ${warnaWadah}`;
+                    }
+                    const btnKembali = document.getElementById('btnKembali');
+                    if (btnKembali) {
+                        if (user.role === 'admin') {
+                            btnKembali.href = '/admin';
+                        } else {
+                            btnKembali.href = '/index';
+                        }
                     }
                 })
                 .catch(() => {
@@ -330,7 +400,7 @@
 
             try {
                 const res = await fetch('http://127.0.0.1:8000/api/profil/foto', {
-                    method: 'DELETE', 
+                    method: 'DELETE',
                     headers: {
                         'Authorization': 'Bearer ' + token,
                         'Accept': 'application/json'
@@ -352,6 +422,60 @@
                 pesanSistem.className = "mb-4 p-3 rounded-lg text-sm font-bold text-center bg-red-100 text-red-700 block";
             }
         });
+        document.getElementById('btnGantiPassword').addEventListener('click', async () => {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const newPasswordConfirmation = document.getElementById('newPassword_confirmation').value;
+            const btn = document.getElementById('btnGantiPassword');
+
+            if (!currentPassword || !newPassword || !newPasswordConfirmation) {
+                tampilkanPesanPw('Semua kolom password wajib diisi!', 'bg-red-100 text-red-700');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = 'Menyimpan...';
+
+            try {
+                const res = await fetch('http://127.0.0.1:8000/api/profil/password', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword,
+                        new_password_confirmation: newPasswordConfirmation
+                    })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    tampilkanPesanPw(data.message, 'bg-green-100 text-green-700');
+                    document.getElementById('currentPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('newPassword_confirmation').value = '';
+                } else {
+                    const errDetail = data.errors ? Object.values(data.errors).flat().join('<br>') : data.message;
+                    tampilkanPesanPw(errDetail, 'bg-red-100 text-red-700');
+                }
+            } catch (err) {
+                tampilkanPesanPw('Terjadi kesalahan koneksi.', 'bg-red-100 text-red-700');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Simpan Password';
+            }
+        });
+
+        function tampilkanPesanPw(teks, classWarna) {
+            const pesanBox = document.getElementById('pesanPassword');
+            pesanBox.innerHTML = teks;
+            pesanBox.className = `mt-4 text-xs font-bold text-center uppercase p-2 block border-2 border-[#2B2318] ${classWarna}`;
+            setTimeout(() => pesanBox.classList.add('hidden'), 4000);
+        }
     </script>
 </body>
 
