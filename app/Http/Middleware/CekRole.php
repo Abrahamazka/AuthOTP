@@ -18,7 +18,7 @@ class CekRole
         }
 
         return response()->json([
-            'message' => 'Akses Ditolak! Satpam Baja: Anda bukan Admin.'
+            'message' => 'Akses Ditolak! Anda bukan Admin.'
         ], 403);
     }
 }

@@ -55,7 +55,7 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Passwordnya salah!'], 401);
+            return response()->json(['message' => 'Email atau Password salah!'], 401);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -283,7 +283,7 @@ class AuthController extends Controller
 
         $user->delete();
 
-        return response()->json(['message' => 'Pemain berhasil dieksekusi (Dihapus)!'], 200);
+        return response()->json(['message' => 'Akun berhasil Dihapus!'], 200);
     }
 
     public function ubahRole(Request $request, $id)
@@ -297,7 +297,7 @@ class AuthController extends Controller
         $user->role = $request->role;
         $user->save();
 
-        return response()->json(['message' => 'Kasta pemain berhasil diubah!'], 200);
+        return response()->json(['message' => 'Role berhasil diubah!'], 200);
     }
 
     public function resetPasswordUser($id)
@@ -346,7 +346,7 @@ class AuthController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Warga baru berhasil ditambahkan!',
+            'message' => 'User baru berhasil ditambahkan!',
             'data'    => $user
         ], 201);
     }

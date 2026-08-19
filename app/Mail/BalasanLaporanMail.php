@@ -42,7 +42,6 @@ class BalasanLaporanMail extends Mailable
                         Laporan Anda mengenai masalah <strong>\"{$this->laporan->judul}\"</strong> telah ditinjau dan diselesaikan oleh Admin. Berikut adalah tanggapan untuk Anda:
                     </p>
                     
-                    <!-- KOTAK PESAN BALASAN (MIRIP KOTAK OTP) -->
                     <div style='background-color: #1A1A1A; border-radius: 12px; padding: 24px; margin-bottom: 30px;'>
                         <p style='margin: 0; font-size: 15px; font-weight: 500; color: #FFFFFF; letter-spacing: 0.5px; line-height: 1.5;'>
                             \"{$this->pesanBalasan}\"

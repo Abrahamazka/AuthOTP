@@ -12,6 +12,7 @@ class Laporan extends Model
         'judul',
         'pesan',
         'balasan_admin',
+        'kategori_ai',
         'status',
     ];
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Laporan;
+use Illuminate\Support\Facades\Http;
 use App\Mail\BalasanLaporanMail; 
 use Illuminate\Support\Facades\Mail; 
 use Illuminate\Support\Facades\Validator;
@@ -23,10 +24,24 @@ class LaporanController extends Controller
                 'errors'  => $validator->errors()
             ], 422);
         }
+
+        $kategoriAi = 'belum di analisis';
+
+        try {
+            $response=Http::timeout(3)->post('http://127.0.0.1:5000/analisa',[
+                'teks' => $request->pesan
+            ]);
+            if ($response->successful()) {
+                $kategoriAi = $response->json('kategori');
+            }
+        } catch (\Exception $e) {
+        }
+
         $laporan = Laporan::create([
             'user_id' => $request->user()->id,
             'judul'   => $request->judul,
             'pesan'   => $request->pesan,
+            'kategori_ai' => $kategoriAi,
             'status'  => 'pending',
         ]);
         return response()->json([

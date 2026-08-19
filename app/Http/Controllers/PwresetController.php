@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password;
 
 class PwresetController extends Controller
 {
@@ -74,7 +75,7 @@ class PwresetController extends Controller
         $request->validate([
             'email'       => 'required|email|exists:users,email',
             'reset_token' => 'required',
-            'password'    => 'required|min:8|confirmed'
+            'password'    => ['required', 'confirmed', Password::min(12)->mixedCase()->symbols()]
         ]);
 
         $email = $request->email;

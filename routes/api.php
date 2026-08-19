@@ -35,6 +35,6 @@ Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::get('/admin/users', [AuthController::class, 'getAllUsers']);
     Route::delete('/admin/users/{id}', [AuthController::class, 'deleteUser']);
     Route::put('/admin/users/{id}/role', [AuthController::class, 'ubahRole']);
-    Route::put('/admin/user/{id}/reset-password', [AuthController::class, 'resetPasswordUser']);
+    Route::put('/admin/users/{id}/password-reset', [AuthController::class, 'resetPasswordUser']);
     Route::put('/admin/users/{id}', [AuthController::class, 'updateUserAdmin']);
 });

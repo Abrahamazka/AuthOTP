@@ -343,10 +343,8 @@
             document.getElementById('searchInput').addEventListener('input', function(e) {
                 clearTimeout(searchTimeout);
                 const query = e.target.value.trim();
-
-                searchTimeout = setTimeout(() => {
+                
                     tarikDataWarga(1, query);
-                }, 400);
             });
 
             function cetakTabel(users) {
@@ -414,8 +412,11 @@
                     const data = await res.json();
 
                     if (res.ok) {
-                        tampilkanPesan(data.message, 'text-green-700');
-                        tarikDataWarga();
+                       if(id === myUserId && roleBaru == 'user'){
+                        alert('Role anda diubah menjadi user!');
+                        window.location.href = '/index';
+                        return;
+                       }
                     } else {
                         tampilkanPesan(data.message, 'text-red-700');
                     }
@@ -452,7 +453,7 @@
                 if (!confirm('Yakin ingin mereset sandi menjadi "Sandibaru123" ?')) return;
 
                 try {
-                    const res = await fetch(`http://127.0.0.1:8000/api/admin/users/${id}/reset-password`, {
+                    const res = await fetch(`http://127.0.0.1:8000/api/admin/users/${id}/password-reset`, {
                         method: 'PUT',
                         headers: {
                             'Authorization': 'Bearer ' + token,

@@ -141,8 +141,8 @@
                 if (res.ok) {
                     localStorage.setItem('token_v', data.token);
                     const roleUser = data.user.role;
-                    if (roleUser == 'admin'){
-                        pesanSistem.innerHTML = "Halo bosku, membuka dashboard";
+                    if (roleUser == 'admin') {
+                        pesanSistem.innerHTML = "Selamat datang! Membuka dashboard...";
                         pesanSistem.className = "mt-4 text-center text-sm text-green-600 block font-bold";
                         setTimeout(() => {
                             window.location.href = '/admin';
@@ -152,11 +152,19 @@
                         pesanSistem.className = "mt-4 text-center text-sm text-green-600 block font-bold";
                         setTimeout(() => {
                             window.location.href = '/index';
-                        }, 1500); 
+                        }, 1500);
                     }
                 } else {
-                    pesanSistem.innerHTML = data.message;
-                    pesanSistem.className = "mt-4 text-center text-sm text-red-600 block";
+                    let pesanerror = data.message;
+
+                    if (data.errors) {
+                        pesanerror = Object.values(data.errors).flat().join('<br>');
+                    }
+
+                    const pesanSistem = document.getElementById('pesanSistem');
+                    pesanSistem.innerHTML = pesanerror;
+                    pesanSistem.classList.remove('hidden');
+                    pesanSistem.classList.add('text-red-700');
                     grecaptcha.reset();
                 }
             } catch (err) {
@@ -252,7 +260,7 @@
                     localStorage.setItem('token_v', data.token);
                     const roleUser = data.user.role;
 
-                    if(roleUser == 'admin') {
+                    if (roleUser == 'admin') {
                         window.location.href = '/admin';
                     } else {
                         window.location.href = '/index';
